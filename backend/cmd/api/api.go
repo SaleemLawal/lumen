@@ -6,8 +6,11 @@ import (
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 )
+
+const version = "1.0.0"
 
 type application struct {
 	logger *zap.SugaredLogger
@@ -24,11 +27,19 @@ func (app *application) mount() http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
-	r.Use(middleware.AllowContentType("application/json", "text/xml"))
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(time.Second * 60))
+
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
+
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(middleware.AllowContentType("application/json", "text/xml"))
+		r.Get("/health", app.healthcheckHandler)
+	})
 
 	return r
 }
