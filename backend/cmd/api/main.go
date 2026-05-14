@@ -2,8 +2,8 @@ package main
 
 import (
 	_ "github.com/saleemlawal/lumen/docs"
+	"github.com/saleemlawal/lumen/internal/env"
 
-	"github.com/saleemlawal/lumen/internal"
 	"go.uber.org/zap"
 )
 
@@ -27,7 +27,7 @@ import (
 // @externalDocs.description	OpenAPI
 // @externalDocs.url			https://swagger.io/resources/open-api/
 func main() {
-	appEnv := internal.GetEnvString("APP_ENV", "development")
+	appEnv := env.GetEnvString("APP_ENV", "development")
 	var logger *zap.SugaredLogger
 
 	if appEnv == "production" {
@@ -41,9 +41,9 @@ func main() {
 	app := &application{
 		logger: logger,
 		config: config{
-			addr:        internal.GetEnvString("PORT", ":8080"),
+			addr:        env.GetEnvString("PORT", ":8080"),
 			env:         appEnv,
-			frontendUrl: internal.GetEnvString("FRONTEND_URL", "http://localhost:5173"),
+			frontendUrl: env.GetEnvString("FRONTEND_URL", "http://localhost:5173"),
 		},
 	}
 
