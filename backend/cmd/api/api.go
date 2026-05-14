@@ -1,11 +1,13 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/saleemlawal/lumen/internal/plaid"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 )
@@ -13,14 +15,21 @@ import (
 const version = "1.0.0"
 
 type application struct {
-	logger *zap.SugaredLogger
-	config config
+	logger      *zap.SugaredLogger
+	config      config
+	plaidConfig plaidConfig
 }
 
 type config struct {
 	addr        string
 	env         string
 	frontendUrl string
+}
+
+type plaidConfig struct {
+	plaidClientId string
+	plaidSecret   string
+	plaidEnv      string
 }
 
 func (app *application) mount() http.Handler {
@@ -45,6 +54,16 @@ func (app *application) mount() http.Handler {
 }
 
 func (app *application) run(mux http.Handler) error {
+	plaidClient := plaid.NewPlaidClient(
+		app.plaidConfig.plaidClientId,
+		app.plaidConfig.plaidSecret,
+		app.plaidConfig.plaidEnv,
+	)
+
+	if plaidClient == nil {
+		app.logger.Fatalf("Failed to create Plaid client")
+		return errors.New("failed to create Plaid client")
+	}
 
 	srv := &http.Server{
 		Addr:         app.config.addr,

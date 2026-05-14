@@ -32,3 +32,6 @@ backend/assets
 backend/logs
 backend/build-errors.log
 backend/build-errors.log
+
+# Environment variables
+backend/.env

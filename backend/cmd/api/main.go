@@ -45,6 +45,11 @@ func main() {
 			env:         appEnv,
 			frontendUrl: env.GetEnvString("FRONTEND_URL", "http://localhost:5173"),
 		},
+		plaidConfig: plaidConfig{
+			plaidClientId: env.GetEnvString("PLAID_CLIENT_ID", ""),
+			plaidSecret:   env.GetEnvString("PLAID_SECRET", ""),
+			plaidEnv:      env.GetEnvString("PLAID_ENV", "sandbox"),
+		},
 	}
 
 	chiRouter := app.mount()
