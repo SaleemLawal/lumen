@@ -109,9 +109,10 @@ cd backend && make swagger
 | `DB_MAX_OPEN`        | `10`                    | `sql.DB` max open connections |
 | `DB_MAX_IDLE`        | `10`                    | `sql.DB` max idle connections |
 | `DB_MAX_IDLE_TIME`   | `10m`                   | Max idle time per connection (Go duration string) |
-| `PLAID_CLIENT_ID`    | _(empty)_               | Plaid client ID |
-| `PLAID_SECRET`       | _(empty)_               | Plaid secret for the environment below |
-| `PLAID_ENV`          | `sandbox`               | `sandbox` or `production` |
+| `PLAID_CLIENT_ID`            | _(empty)_               | Plaid client ID |
+| `PLAID_SECRET`               | _(empty)_               | Plaid secret for the environment below |
+| `PLAID_ENV`                  | `sandbox`               | `sandbox` or `production` |
+| `PLAID_TOKEN_ENCRYPTION_KEY` | _(empty)_               | **Required** Base64-encoded 16, 24, or 32-byte AES key for encrypting stored access tokens (generate: `openssl rand -base64 32`) |
 
 ### Live reload (optional)
 
