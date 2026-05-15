@@ -43,7 +43,7 @@ const docTemplate = `{
         },
         "/api/v1/plaid/exchange-public-token": {
             "post": {
-                "description": "Exchanges a Link public_token server-side. Does not return access_token or item_id to the client.",
+                "description": "Exchanges a Link public_token server-side.",
                 "consumes": [
                     "application/json"
                 ],

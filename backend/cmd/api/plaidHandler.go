@@ -19,8 +19,8 @@ type PlaidExchangePublicTokenResponse struct {
 //	@Accept			json
 //	@Produce		json
 //	@Success		200	{string}	string	"plaid-sandbox-1234567890"
-//	@Failure		415	{object}	github.com/saleemlawal/lumen/internal/apiresponse.ErrorResponse	"Unsupported Content-Type (allowed: application/json, text/xml)"
-//	@Failure		500	{object}	github.com/saleemlawal/lumen/internal/apiresponse.ErrorResponse	"Plaid or server error"
+//	@Failure		415	{object}	ErrorResponse	"Unsupported Content-Type (allowed: application/json, text/xml)"
+//	@Failure		500	{object}	ErrorResponse	"Plaid or server error"
 //	@Router			/api/v1/plaid/link-token [get]
 func (app *application) createPlaidLinkTokenHandler(w http.ResponseWriter, r *http.Request) {
 	linkToken, err := app.plaidClient.CreateLinkToken()
@@ -40,9 +40,9 @@ func (app *application) createPlaidLinkTokenHandler(w http.ResponseWriter, r *ht
 //	@Produce		json
 //	@Param			body	body		ExchangePublicTokenRequest	true	"public_token from Link onSuccess"
 //	@Success		200		{object}	PlaidExchangePublicTokenResponse
-//	@Failure		400	{object}	github.com/saleemlawal/lumen/internal/apiresponse.ErrorResponse	"Invalid JSON body or unknown fields"
-//	@Failure		415	{object}	github.com/saleemlawal/lumen/internal/apiresponse.ErrorResponse	"Unsupported Content-Type (allowed: application/json, text/xml)"
-//	@Failure		500	{object}	github.com/saleemlawal/lumen/internal/apiresponse.ErrorResponse	"Plaid or server error"
+//	@Failure		400	{object}	ErrorResponse	"Invalid JSON body or unknown fields"
+//	@Failure		415	{object}	ErrorResponse	"Unsupported Content-Type (allowed: application/json, text/xml)"
+//	@Failure		500	{object}	ErrorResponse	"Plaid or server error"
 //	@Router			/api/v1/plaid/exchange-public-token [post]
 func (app *application) exchangePublicTokenHandler(w http.ResponseWriter, r *http.Request) {
 	var request ExchangePublicTokenRequest

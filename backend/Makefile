@@ -1,8 +1,8 @@
-include .env
 MIGRATIONS_PATH = ./cmd/migrate/migrations
+DB_URL = postgres://admin:password@localhost:5432/lumen?sslmode=disable
 .PHONY: swagger
 swagger:
-	swag init -g api.go -d ./cmd/api -o ./docs --parseInternal
+	swag init -g api.go -d ./cmd/api -o ./docs --parseInternal --parseDependency
 
 .PHONY: migration
 migration:

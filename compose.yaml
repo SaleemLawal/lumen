@@ -26,7 +26,12 @@ services:
     environment:
       - APP_ENV=development
       - PORT=:8080
-  
+      - DB_URL=postgres://admin:password@db:5432/lumen?sslmode=disable
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
   db:
     image: postgres:17.1-alpine
     environment:
@@ -43,6 +48,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
   migrate:
     image: migrate/migrate:v4.17.1
     command:
@@ -55,6 +61,7 @@ services:
       db:
         condition: service_healthy
     restart: "no"
+
 volumes:
   frontend_node_modules:
   db_data:

@@ -3,6 +3,7 @@ module github.com/saleemlawal/lumen
 go 1.25.1
 
 require (
+	github.com/lib/pq v1.10.9
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/zap v1.28.0
 )

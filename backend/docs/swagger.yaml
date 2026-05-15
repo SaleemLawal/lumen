@@ -41,8 +41,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Exchanges a Link public_token server-side. Does not return access_token
-        or item_id to the client.
+      description: Exchanges a Link public_token server-side.
       parameters:
       - description: public_token from Link onSuccess
         in: body

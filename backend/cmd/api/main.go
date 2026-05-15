@@ -2,10 +2,6 @@ package main
 
 import (
 	_ "github.com/saleemlawal/lumen/docs"
-	"github.com/saleemlawal/lumen/internal/env"
-	"github.com/saleemlawal/lumen/internal/plaid"
-
-	"go.uber.org/zap"
 )
 
 //	@title			Swagger Example API
@@ -28,36 +24,17 @@ import (
 // @externalDocs.description	OpenAPI
 // @externalDocs.url			https://swagger.io/resources/open-api/
 func main() {
-	appEnv := env.GetEnvString("APP_ENV", "development")
-	var logger *zap.SugaredLogger
+	cfg := loadConfig()
+	logger := newLogger(cfg.env)
+	defer func() { _ = logger.Sync() }()
 
-	if appEnv == "production" {
-		logger = zap.Must(zap.NewProduction()).Sugar()
-	} else {
-		logger = zap.Must(zap.NewDevelopment()).Sugar()
+	app, cleanup, err := newApplication(logger, cfg)
+	if err != nil {
+		logger.Fatalw("failed to connect to database", "error", err)
 	}
+	defer cleanup()
 
-	defer logger.Sync()
-
-	plaidCfg := plaidConfig{
-		plaidClientId: env.GetEnvString("PLAID_CLIENT_ID", ""),
-		plaidSecret:   env.GetEnvString("PLAID_SECRET", ""),
-		plaidEnv:      env.GetEnvString("PLAID_ENV", "sandbox"),
+	if err := app.run(app.mount()); err != nil {
+		logger.Fatalw("server stopped", "error", err)
 	}
-
-	app := &application{
-		logger: logger,
-		config: config{
-			addr:        env.GetEnvString("PORT", ":8080"),
-			env:         appEnv,
-			frontendUrl: env.GetEnvString("FRONTEND_URL", "http://localhost:5173"),
-		},
-		plaidClient: plaid.NewPlaidClient(plaidCfg.plaidClientId, plaidCfg.plaidSecret, plaidCfg.plaidEnv),
-	}
-
-	chiRouter := app.mount()
-
-	err := app.run(chiRouter)
-
-	logger.Fatalw("Server has stopped", "error", err)
 }

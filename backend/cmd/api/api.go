@@ -6,7 +6,9 @@ import (
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/saleemlawal/lumen/internal/db"
 	"github.com/saleemlawal/lumen/internal/plaid"
+	"github.com/saleemlawal/lumen/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 )
@@ -17,18 +19,51 @@ type application struct {
 	logger      *zap.SugaredLogger
 	config      config
 	plaidClient *plaid.PlaidClient
+	storage     *store.Storage
 }
 
 type config struct {
 	addr        string
 	env         string
 	frontendUrl string
+	db          dbConfig
+	plaid       plaidConfig
 }
 
 type plaidConfig struct {
 	plaidClientId string
 	plaidSecret   string
 	plaidEnv      string
+}
+
+type dbConfig struct {
+	addr        string
+	maxOpen     int
+	maxIdle     int
+	maxIdleTime string
+}
+
+func newApplication(logger *zap.SugaredLogger, cfg config) (*application, func(), error) {
+	sqlDB, err := db.New(cfg.db.addr,
+		cfg.db.maxOpen,
+		cfg.db.maxIdle,
+		cfg.db.maxIdleTime,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+	cleanup := func() { _ = sqlDB.Close() }
+
+	app := &application{
+		logger: logger,
+		config: cfg,
+		plaidClient: plaid.NewPlaidClient(cfg.plaid.plaidClientId,
+			cfg.plaid.plaidSecret,
+			cfg.plaid.plaidEnv,
+		),
+		storage: store.NewStorage(sqlDB),
+	}
+	return app, cleanup, nil
 }
 
 func (app *application) mount() http.Handler {
