@@ -27,6 +27,7 @@ const items = [
   { title: "Budgets", url: "/budgets", icon: PiggyBank },
   { title: "Accounts", url: "/accounts", icon: Wallet },
   { title: "Investments", url: "/investments", icon: TrendingUp },
+  { title: "Connect", url: "/connect", icon: Link },
 ];
 
 export default function SideBar() {

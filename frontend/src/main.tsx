@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import AppLayout from './layouts/AppLayout';
 import NotFound from './pages/NotFound';
 import ErrorPage from './pages/ErrorPage';
+import ConnectPage from './pages/ConnectPage';
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -21,6 +22,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/budgets" element={<div className="text-muted-foreground">Budgets coming soon</div>} />
             <Route path="/accounts" element={<div className="text-muted-foreground">Accounts coming soon</div>} />
             <Route path="/investments" element={<div className="text-muted-foreground">Investments coming soon</div>} />
+            <Route path="/connect" element={<ConnectPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
