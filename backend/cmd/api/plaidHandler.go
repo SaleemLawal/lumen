@@ -2,6 +2,8 @@ package main
 
 import (
 	"net/http"
+
+	"github.com/saleemlawal/lumen/internal/domain"
 )
 
 type ExchangePublicTokenRequest struct {
@@ -54,10 +56,23 @@ func (app *application) exchangePublicTokenHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
-	// TODO: Persist result.AccessToken (encrypted) and result.ItemID for the authenticated user.
+	response, err := app.plaidClient.ExchangePublicToken(request.PublicToken)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
 
-	_, err := app.plaidClient.ExchangePublicToken(request.PublicToken)
-		if err != nil {
+	encryptedToken, err := app.encryptor.Encrypt(response.AccessToken)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	item := &domain.PlaidItem{
+		AccessToken: encryptedToken,
+		ItemID:      response.ItemID,
+	}
+	if err := app.storage.Plaid.Create(r.Context(), item); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}

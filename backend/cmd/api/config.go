@@ -18,9 +18,10 @@ func loadConfig() config {
 			maxIdleTime: env.GetEnvString("DB_MAX_IDLE_TIME", "10m"),
 		},
 		plaid: plaidConfig{
-			plaidClientId: env.GetEnvString("PLAID_CLIENT_ID", ""),
-			plaidSecret:   env.GetEnvString("PLAID_SECRET", ""),
-			plaidEnv:      env.GetEnvString("PLAID_ENV", "sandbox"),
+			plaidClientId:      env.GetEnvString("PLAID_CLIENT_ID", ""),
+			plaidSecret:        env.GetEnvString("PLAID_SECRET", ""),
+			plaidEnv:           env.GetEnvString("PLAID_ENV", "sandbox"),
+			tokenEncryptionKey: env.GetEnvString("PLAID_TOKEN_ENCRYPTION_KEY", ""),
 		},
 	}
 }

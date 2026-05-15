@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/base64"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -8,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/saleemlawal/lumen/external/plaid"
 	"github.com/saleemlawal/lumen/internal/db"
+	"github.com/saleemlawal/lumen/internal/encryption"
 	"github.com/saleemlawal/lumen/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
@@ -20,6 +23,7 @@ type application struct {
 	config      config
 	plaidClient *plaid.PlaidClient
 	storage     *store.Storage
+	encryptor   *encryption.AESEncryptor
 }
 
 type config struct {
@@ -31,9 +35,10 @@ type config struct {
 }
 
 type plaidConfig struct {
-	plaidClientId string
-	plaidSecret   string
-	plaidEnv      string
+	plaidClientId      string
+	plaidSecret        string
+	plaidEnv           string
+	tokenEncryptionKey string
 }
 
 type dbConfig struct {
@@ -54,6 +59,16 @@ func newApplication(logger *zap.SugaredLogger, cfg config) (*application, func()
 	}
 	cleanup := func() { _ = sqlDB.Close() }
 
+	keyBytes, err := base64.StdEncoding.DecodeString(cfg.plaid.tokenEncryptionKey)
+	if err != nil {
+		return nil, cleanup, fmt.Errorf("invalid PLAID_TOKEN_ENCRYPTION_KEY (must be base64): %w", err)
+	}
+
+	enc, err := encryption.NewAESEncryptor(keyBytes)
+	if err != nil {
+		return nil, cleanup, fmt.Errorf("failed to create encryptor: %w", err)
+	}
+
 	app := &application{
 		logger: logger,
 		config: cfg,
@@ -61,7 +76,8 @@ func newApplication(logger *zap.SugaredLogger, cfg config) (*application, func()
 			cfg.plaid.plaidSecret,
 			cfg.plaid.plaidEnv,
 		),
-		storage: store.NewStorage(sqlDB),
+		storage:   store.NewStorage(sqlDB),
+		encryptor: enc,
 	}
 	return app, cleanup, nil
 }
