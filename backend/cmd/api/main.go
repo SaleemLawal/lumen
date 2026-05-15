@@ -3,6 +3,7 @@ package main
 import (
 	_ "github.com/saleemlawal/lumen/docs"
 	"github.com/saleemlawal/lumen/internal/env"
+	"github.com/saleemlawal/lumen/internal/plaid"
 
 	"go.uber.org/zap"
 )
@@ -38,6 +39,12 @@ func main() {
 
 	defer logger.Sync()
 
+	plaidCfg := plaidConfig{
+		plaidClientId: env.GetEnvString("PLAID_CLIENT_ID", ""),
+		plaidSecret:   env.GetEnvString("PLAID_SECRET", ""),
+		plaidEnv:      env.GetEnvString("PLAID_ENV", "sandbox"),
+	}
+
 	app := &application{
 		logger: logger,
 		config: config{
@@ -45,11 +52,7 @@ func main() {
 			env:         appEnv,
 			frontendUrl: env.GetEnvString("FRONTEND_URL", "http://localhost:5173"),
 		},
-		plaidConfig: plaidConfig{
-			plaidClientId: env.GetEnvString("PLAID_CLIENT_ID", ""),
-			plaidSecret:   env.GetEnvString("PLAID_SECRET", ""),
-			plaidEnv:      env.GetEnvString("PLAID_ENV", "sandbox"),
-		},
+		plaidClient: plaid.NewPlaidClient(plaidCfg.plaidClientId, plaidCfg.plaidSecret, plaidCfg.plaidEnv),
 	}
 
 	chiRouter := app.mount()

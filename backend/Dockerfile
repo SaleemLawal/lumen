@@ -3,9 +3,10 @@ FROM golang:1.25.1-alpine AS dev
 
 WORKDIR /app
 
-RUN apk add --no-cache git ca-certificates
+RUN apk add --no-cache git ca-certificates make
 
-RUN go install github.com/air-verse/air@latest
+RUN go install github.com/air-verse/air@latest && \
+    go install github.com/swaggo/swag/cmd/swag@latest
 ENV PATH="/go/bin:${PATH}"
 
 COPY go.mod go.sum ./

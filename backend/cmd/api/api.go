@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"net/http"
 	"time"
 
@@ -18,6 +17,7 @@ type application struct {
 	logger      *zap.SugaredLogger
 	config      config
 	plaidConfig plaidConfig
+	plaidClient *plaid.PlaidClient
 }
 
 type config struct {
@@ -48,23 +48,14 @@ func (app *application) mount() http.Handler {
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Use(middleware.AllowContentType("application/json", "text/xml"))
 		r.Get("/health", app.healthcheckHandler)
+
+		r.Get("/plaid/link-token", app.createPlaidLinkTokenHandler)
 	})
 
 	return r
 }
 
 func (app *application) run(mux http.Handler) error {
-	plaidClient := plaid.NewPlaidClient(
-		app.plaidConfig.plaidClientId,
-		app.plaidConfig.plaidSecret,
-		app.plaidConfig.plaidEnv,
-	)
-
-	if plaidClient == nil {
-		app.logger.Fatalf("Failed to create Plaid client")
-		return errors.New("failed to create Plaid client")
-	}
-
 	srv := &http.Server{
 		Addr:         app.config.addr,
 		Handler:      mux,
