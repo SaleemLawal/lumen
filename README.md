@@ -13,6 +13,27 @@ Monorepo for **Lumen**: a React + Vite frontend and a Go HTTP API.
 
 - **Node.js** (see `frontend/package.json` for tooling)
 - **Go** 1.25+ (see `backend/go.mod`)
+- **PostgreSQL** (or run the database via Docker Compose below)
+- **[golang-migrate CLI](https://github.com/golang-migrate/migrate)** (optional; only if you run migrations locally with `make migrate-up` instead of Compose)
+
+## Docker Compose (full stack)
+
+From the repository root, with `backend/.env` present (Compose loads it for the API; include at least your Plaid variables there):
+
+```bash
+docker compose up --build
+```
+
+Services:
+
+| Service      | Role |
+|-------------|------|
+| `ui`        | Vite dev server on [http://localhost:5173](http://localhost:5173) |
+| `db`        | PostgreSQL 17 (`admin` / `password`, database `lumen`) |
+| `migrate`   | Runs SQL migrations once the database is healthy |
+| `api-server`| Go API on [http://localhost:8080](http://localhost:8080) after migrations succeed |
+
+The API receives `DB_URL=postgres://admin:password@db:5432/lumen?sslmode=disable` inside the Compose network.
 
 ## Frontend
 
@@ -34,10 +55,28 @@ Import aliases use `@` mapped to the `frontend/` directory (see `vite.config.ts`
 
 ## Backend
 
+The API opens a PostgreSQL pool on startup and pings the database, so **`DB_URL` must point at a reachable Postgres instance with migrations applied** before `go run` will succeed.
+
+**Example (local Postgres matching the Makefile defaults):**
+
 ```bash
+# Start Postgres (e.g. from compose: docker compose up db -d)
 cd backend
+export DB_URL='postgres://admin:password@localhost:5432/lumen?sslmode=disable'
+make migrate-up
 go run ./cmd/api
 ```
+
+### Database migrations
+
+Migrations live in `backend/cmd/migrate/migrations/`. The Makefile uses the same DSN as the default local `DB_URL` in `backend/Makefile`; override `DB_URL` in the environment if your database differs.
+
+| Command | Purpose |
+|---------|---------|
+| `make migration name` | Create a new numbered `.sql` pair (pass a name after the target) |
+| `make migrate-up` | Apply all pending migrations |
+| `make migrate-down [N]` | Roll back `N` migrations (default tool behavior if `N` omitted) |
+| `make migrate-force version` | Set schema version then run `migrate-up` (use only when you understand [force](https://github.com/golang-migrate/migrate/blob/master/GETTING_STARTED.md#forcing-your-database-version)) |
 
 ### HTTP API
 
@@ -57,16 +96,22 @@ After changing Swagger annotations on handlers, regenerate docs:
 cd backend && make swagger
 ```
 
+(`make swagger` runs `swag init` with `--parseInternal` and `--parseDependency`; see `backend/Makefile`.)
+
 ### Environment variables
 
-| Variable          | Default                 | Purpose |
-|-------------------|-------------------------|---------|
-| `APP_ENV`         | `development`           | If `production`, uses zap production logging |
-| `PORT`            | `:8080`                 | Listen address passed to `http.Server.Addr` |
-| `FRONTEND_URL`    | `http://localhost:5173` | Default origin of the web client in local development |
-| `PLAID_CLIENT_ID` | _(empty)_               | Plaid client ID |
-| `PLAID_SECRET`    | _(empty)_               | Plaid secret for the environment below |
-| `PLAID_ENV`       | `sandbox`               | `sandbox` or `production` |
+| Variable             | Default                 | Purpose |
+|----------------------|-------------------------|---------|
+| `APP_ENV`            | `development`           | If `production`, uses zap production logging |
+| `PORT`               | `:8080`                 | Listen address passed to `http.Server.Addr` |
+| `FRONTEND_URL`       | `http://localhost:5173` | Default origin of the web client in local development |
+| `DB_URL`             | _(empty)_               | **Required** for the API: PostgreSQL DSN (e.g. `postgres://user:pass@host:5432/lumen?sslmode=disable`) |
+| `DB_MAX_OPEN`        | `10`                    | `sql.DB` max open connections |
+| `DB_MAX_IDLE`        | `10`                    | `sql.DB` max idle connections |
+| `DB_MAX_IDLE_TIME`   | `10m`                   | Max idle time per connection (Go duration string) |
+| `PLAID_CLIENT_ID`    | _(empty)_               | Plaid client ID |
+| `PLAID_SECRET`       | _(empty)_               | Plaid secret for the environment below |
+| `PLAID_ENV`          | `sandbox`               | `sandbox` or `production` |
 
 ### Live reload (optional)
 
