@@ -4,10 +4,10 @@ Monorepo for **Lumen**: a React + Vite frontend and a Go HTTP API.
 
 ## Repository layout
 
-| Directory    | Stack                          |
-|-------------|---------------------------------|
-| `frontend/` | React 19, TypeScript, Vite, Tailwind, shadcn-style UI |
-| `backend/`  | Go, [chi](https://github.com/go-chi/chi) router, [zap](https://github.com/uber-go/zap) logging |
+| Directory    | Stack |
+|-------------|--------|
+| `frontend/` | React 19, TypeScript, Vite, Tailwind CSS 4, React Router, Radix UI / shadcn-style components, Lucide icons |
+| `backend/`  | Go, [chi](https://github.com/go-chi/chi) router, [zap](https://github.com/uber-go/zap) logging, [Plaid Go SDK](https://github.com/plaid/plaid-go), OpenAPI via [swag](https://github.com/swaggo/swag) and Swagger UI |
 
 ## Prerequisites
 
@@ -39,13 +39,34 @@ cd backend
 go run ./cmd/api
 ```
 
+### HTTP API
+
+Base path: **`/api/v1`**.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/health` | JSON: `status`, `env`, `version` |
+| `GET` | `/plaid/link-token` | JSON-encoded Plaid Link token string |
+| `POST` | `/plaid/exchange-public-token` | JSON body `{ "public_token": "..." }`; success `{ "status": "linked" }` |
+
+OpenAPI UI (with the API running on the default port): `http://localhost:8080/swagger/index.html`.
+
+After changing Swagger annotations on handlers, regenerate docs:
+
+```bash
+cd backend && make swagger
+```
+
 ### Environment variables
 
-| Variable       | Default                 | Purpose |
-|----------------|-------------------------|---------|
-| `APP_ENV`      | `development`           | If `production`, uses zap production logging |
-| `PORT`         | `:8080`                 | Listen address passed to `http.Server.Addr` |
-| `FRONTEND_URL` | `http://localhost:5173` | Reserved for future CORS or redirects |
+| Variable          | Default                 | Purpose |
+|-------------------|-------------------------|---------|
+| `APP_ENV`         | `development`           | If `production`, uses zap production logging |
+| `PORT`            | `:8080`                 | Listen address passed to `http.Server.Addr` |
+| `FRONTEND_URL`    | `http://localhost:5173` | Default origin of the web client in local development |
+| `PLAID_CLIENT_ID` | _(empty)_               | Plaid client ID |
+| `PLAID_SECRET`    | _(empty)_               | Plaid secret for the environment below |
+| `PLAID_ENV`       | `sandbox`               | `sandbox` or `production` |
 
 ### Live reload (optional)
 
