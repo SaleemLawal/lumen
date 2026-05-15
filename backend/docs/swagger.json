@@ -30,6 +30,58 @@
                 }
             }
         },
+        "/api/v1/plaid/exchange-public-token": {
+            "post": {
+                "description": "Exchanges a Link public_token server-side. Does not return access_token or item_id to the client.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plaid"
+                ],
+                "summary": "Exchange Plaid public token",
+                "parameters": [
+                    {
+                        "description": "public_token from Link onSuccess",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.ExchangePublicTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.PlaidExchangePublicTokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON body or unknown fields",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported Content-Type (allowed: application/json, text/xml)",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Plaid or server error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/plaid/link-token": {
             "get": {
                 "description": "Create a Plaid link token",
@@ -45,11 +97,52 @@
                 "summary": "Create Plaid link token",
                 "responses": {
                     "200": {
-                        "description": "Plaid link token",
+                        "description": "plaid-sandbox-1234567890",
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    "415": {
+                        "description": "Unsupported Content-Type (allowed: application/json, text/xml)",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Plaid or server error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "main.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "The server encountered a problem and could not process your request"
+                }
+            }
+        },
+        "main.ExchangePublicTokenRequest": {
+            "type": "object",
+            "properties": {
+                "public_token": {
+                    "type": "string",
+                    "example": "public-sandbox-abc123"
+                }
+            }
+        },
+        "main.PlaidExchangePublicTokenResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "linked"
                 }
             }
         }

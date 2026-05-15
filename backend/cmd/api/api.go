@@ -50,6 +50,7 @@ func (app *application) mount() http.Handler {
 		r.Get("/health", app.healthcheckHandler)
 
 		r.Get("/plaid/link-token", app.createPlaidLinkTokenHandler)
+		r.Post("/plaid/exchange-public-token", app.exchangePublicTokenHandler)
 	})
 
 	return r

@@ -2,7 +2,6 @@ package plaid
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	plaid "github.com/plaid/plaid-go/v42/plaid"
@@ -10,6 +9,11 @@ import (
 
 type PlaidClient struct {
 	plaidApi *plaid.PlaidApiService
+}
+
+type PublicTokenExchangeResult struct {
+	AccessToken string
+	ItemID      string
 }
 
 var environments = map[string]plaid.Environment{
@@ -48,8 +52,22 @@ func (c *PlaidClient) CreateLinkToken() (string, error) {
 		return "", err
 	}
 
-	fmt.Println(response)
-
 	return response.GetLinkToken(), nil
+}
 
+func (c *PlaidClient) ExchangePublicToken(publicToken string) (PublicTokenExchangeResult, error) {
+	ctx := context.Background()
+
+	exchangePublicTokenReq := plaid.NewItemPublicTokenExchangeRequest(publicToken)
+
+	response, _, err := c.plaidApi.ItemPublicTokenExchange(ctx).ItemPublicTokenExchangeRequest(*exchangePublicTokenReq).Execute()
+	if err != nil {
+		return PublicTokenExchangeResult{}, err
+	}
+
+
+	return PublicTokenExchangeResult{
+		AccessToken: response.GetAccessToken(),
+		ItemID:      response.GetItemId(),
+	}, nil
 }

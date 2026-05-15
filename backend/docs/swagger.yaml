@@ -1,3 +1,22 @@
+definitions:
+  main.ErrorResponse:
+    properties:
+      error:
+        example: The server encountered a problem and could not process your request
+        type: string
+    type: object
+  main.ExchangePublicTokenRequest:
+    properties:
+      public_token:
+        example: public-sandbox-abc123
+        type: string
+    type: object
+  main.PlaidExchangePublicTokenResponse:
+    properties:
+      status:
+        example: linked
+        type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -18,6 +37,41 @@ paths:
       summary: Health check
       tags:
       - health
+  /api/v1/plaid/exchange-public-token:
+    post:
+      consumes:
+      - application/json
+      description: Exchanges a Link public_token server-side. Does not return access_token
+        or item_id to the client.
+      parameters:
+      - description: public_token from Link onSuccess
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/main.ExchangePublicTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.PlaidExchangePublicTokenResponse'
+        "400":
+          description: Invalid JSON body or unknown fields
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "415":
+          description: 'Unsupported Content-Type (allowed: application/json, text/xml)'
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Plaid or server error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Exchange Plaid public token
+      tags:
+      - plaid
   /api/v1/plaid/link-token:
     get:
       consumes:
@@ -27,9 +81,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: Plaid link token
+          description: plaid-sandbox-1234567890
           schema:
             type: string
+        "415":
+          description: 'Unsupported Content-Type (allowed: application/json, text/xml)'
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Plaid or server error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
       summary: Create Plaid link token
       tags:
       - plaid
