@@ -1,0 +1,10 @@
+ALTER TABLE accounts
+ALTER COLUMN current_balance DROP NOT NULL;
+ALTER TABLE accounts
+ALTER COLUMN available_balance DROP NOT NULL;
+
+ALTER TABLE accounts
+ALTER COLUMN currency_code DROP NOT NULL;
+
+ALTER TABLE accounts
+ALTER COLUMN subtype DROP NOT NULL;
