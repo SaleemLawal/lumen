@@ -72,7 +72,7 @@ func (app *application) exchangePublicTokenHandler(w http.ResponseWriter, r *htt
 		AccessToken: encryptedToken,
 		ItemID:      response.ItemID,
 	}
-	if err := app.storage.Plaid.Create(r.Context(), item); err != nil {
+	if err := app.storage.Plaid.UpsertPlaidItem(r.Context(), item); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
