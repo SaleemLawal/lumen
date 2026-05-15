@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    plaid_item_id UUID NOT NULL REFERENCES plaid_items(id),
+    account_id UUID NOT NULL REFERENCES accounts(id),
+    name TEXT NOT NULL,
+    amount DECIMAL(12, 2) NOT NULL,
+    date DATE NOT NULL,
+    category TEXT[],
+    pending BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

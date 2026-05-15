@@ -30,7 +30,9 @@ require (
 require (
 	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/chi/v5 v5.2.5
+	github.com/google/uuid v1.6.0
 	github.com/plaid/plaid-go/v42 v42.2.0
+	github.com/shopspring/decimal v1.4.0
 	github.com/swaggo/http-swagger v1.3.4
 	go.uber.org/multierr v1.10.0 // indirect
 )

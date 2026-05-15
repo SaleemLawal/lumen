@@ -1,8 +1,8 @@
-MIGRATIONS_PATH = ./cmd/migrate/migrations
+MIGRATIONS_PATH = ./backend/cmd/migrate/migrations
 DB_URL = postgres://admin:password@localhost:5432/lumen?sslmode=disable
 .PHONY: swagger
 swagger:
-	swag init -g api.go -d ./cmd/api -o ./docs --parseInternal --parseDependency
+	swag init -g api.go -d ./backend/cmd/api -o ./backend/docs --parseInternal --parseDependency
 
 .PHONY: migration
 migration:
