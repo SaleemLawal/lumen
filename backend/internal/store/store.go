@@ -24,6 +24,7 @@ type Storage struct {
 
 func NewStorage(db *sql.DB) *Storage {
 	return &Storage{
-		Plaid: &PlaidRepository{db},
+		Plaid:    &PlaidRepository{db},
+		Accounts: &AccountRepository{db},
 	}
 }

@@ -14,7 +14,6 @@ type AccountRepository struct {
 	db *sql.DB
 }
 
-// Adds accounts fetched from Plaid to database
 func (r *AccountRepository) UpsertAccounts(ctx context.Context, itemID string, accounts []plaid.AccountBase) error {
 	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT_DURATION)
 	defer cancel()
