@@ -70,3 +70,14 @@ func (c *PlaidClient) ExchangePublicToken(publicToken string) (PublicTokenExchan
 		ItemID:      response.GetItemId(),
 	}, nil
 }
+
+func (c *PlaidClient) FetchAccounts(accessToken string) ([]plaid.AccountBase, error) {
+	ctx := context.Background()
+
+	response, _, err := c.plaidApi.AccountsGet(ctx).AccountsGetRequest(*plaid.NewAccountsGetRequest(accessToken)).Execute()
+	if err != nil {
+		return nil, err
+	}
+
+	return response.GetAccounts(), nil
+}

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/plaid/plaid-go/v42/plaid"
 	"github.com/saleemlawal/lumen/internal/domain"
 )
 
@@ -14,6 +15,10 @@ var QUERY_TIMEOUT_DURATION = 5 * time.Second
 type Storage struct {
 	Plaid interface {
 		UpsertPlaidItem(context.Context, *domain.PlaidItem) error
+	}
+
+	Accounts interface {
+		UpsertAccounts(context.Context, string, []plaid.AccountBase) error
 	}
 }
 
