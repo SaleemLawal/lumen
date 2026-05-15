@@ -15,30 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/plaid/link-token": {
-            "get": {
-                "description": "Create a Plaid link token",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "plaid"
-                ],
-                "summary": "Create Plaid link token",
-                "responses": {
-                    "200": {
-                        "description": "Plaid link token",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/health": {
+        "/api/v1/health": {
             "get": {
                 "description": "Check the health of the server",
                 "consumes": [
@@ -59,6 +36,29 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/plaid/link-token": {
+            "get": {
+                "description": "Create a Plaid link token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plaid"
+                ],
+                "summary": "Create Plaid link token",
+                "responses": {
+                    "200": {
+                        "description": "Plaid link token",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }

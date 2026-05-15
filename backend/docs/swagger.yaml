@@ -1,22 +1,7 @@
 info:
   contact: {}
 paths:
-  /api/v1/plaid/link-token:
-    get:
-      consumes:
-      - application/json
-      description: Create a Plaid link token
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Plaid link token
-          schema:
-            type: string
-      summary: Create Plaid link token
-      tags:
-      - plaid
-  /health:
+  /api/v1/health:
     get:
       consumes:
       - application/json
@@ -33,4 +18,19 @@ paths:
       summary: Health check
       tags:
       - health
+  /api/v1/plaid/link-token:
+    get:
+      consumes:
+      - application/json
+      description: Create a Plaid link token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Plaid link token
+          schema:
+            type: string
+      summary: Create Plaid link token
+      tags:
+      - plaid
 swagger: "2.0"

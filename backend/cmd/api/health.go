@@ -12,7 +12,7 @@ import (
 //	@Accept			json
 //	@Produce		json
 //	@Success		200	{object}	map[string]string
-//	@Router			/health [get]
+//	@Router			/api/v1/health [get]
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{
 		"status":  "ok",
