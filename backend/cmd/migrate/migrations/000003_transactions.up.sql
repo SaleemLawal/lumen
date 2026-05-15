@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     plaid_item_id UUID NOT NULL REFERENCES plaid_items(id),
-    account_id UUID NOT NULL REFERENCES accounts(id),
+    account_id TEXT NOT NULL,
+    plaid_transaction_id TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
     amount DECIMAL(12, 2) NOT NULL,
     date DATE NOT NULL,
