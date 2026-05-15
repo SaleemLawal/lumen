@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS plaid_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    access_token BYTEA NOT NULL,
+    item_id TEXT NOT NULL UNIQUE,
+    transactions_cursor TEXT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
