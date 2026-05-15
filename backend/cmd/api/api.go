@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/saleemlawal/lumen/external/plaid"
 	"github.com/saleemlawal/lumen/internal/db"
-	"github.com/saleemlawal/lumen/internal/plaid"
 	"github.com/saleemlawal/lumen/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"

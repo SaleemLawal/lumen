@@ -65,7 +65,6 @@ func (c *PlaidClient) ExchangePublicToken(publicToken string) (PublicTokenExchan
 		return PublicTokenExchangeResult{}, err
 	}
 
-
 	return PublicTokenExchangeResult{
 		AccessToken: response.GetAccessToken(),
 		ItemID:      response.GetItemId(),

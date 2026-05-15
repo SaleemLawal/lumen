@@ -30,7 +30,7 @@ func main() {
 
 	app, cleanup, err := newApplication(logger, cfg)
 	if err != nil {
-		logger.Fatalw("failed to connect to database", "error", err)
+		logger.Fatalw("failed to initialize application", "error", err)
 	}
 	defer cleanup()
 

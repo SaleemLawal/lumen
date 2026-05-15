@@ -1,6 +1,8 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type ExchangePublicTokenRequest struct {
 	PublicToken string `json:"public_token" example:"public-sandbox-abc123"`
@@ -55,7 +57,7 @@ func (app *application) exchangePublicTokenHandler(w http.ResponseWriter, r *htt
 	// TODO: Persist result.AccessToken (encrypted) and result.ItemID for the authenticated user.
 
 	_, err := app.plaidClient.ExchangePublicToken(request.PublicToken)
-	if err != nil {
+		if err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
