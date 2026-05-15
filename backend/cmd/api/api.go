@@ -16,7 +16,6 @@ const version = "1.0.0"
 type application struct {
 	logger      *zap.SugaredLogger
 	config      config
-	plaidConfig plaidConfig
 	plaidClient *plaid.PlaidClient
 }
 
