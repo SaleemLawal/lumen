@@ -69,7 +69,15 @@ go run ./cmd/api
 
 ### Database migrations
 
-Migrations live in `backend/cmd/migrate/migrations/`. The Makefile uses the same DSN as the default local `DB_URL` in `backend/Makefile`; override `DB_URL` in the environment if your database differs.
+Migrations live in `backend/cmd/migrate/migrations/`. The Makefile uses the same DSN as the default local `DB_URL`; override `DB_URL` in the environment if your database differs.
+
+| # | Name | Description |
+|---|------|-------------|
+| 1 | `plaid_items` | Core item table: `access_token` (encrypted bytes), `item_id`, `transactions_cursor` |
+| 2 | `accounts` | Account table linked to `plaid_items` via UUID FK; unique on `account_id` |
+| 3 | `transactions` | Transaction table; unique on `plaid_transaction_id` |
+| 4 | `remove-accounts-null` | Drops NOT NULL from nullable balance/currency/subtype columns |
+| 5 | `plaid_items_institution` | Adds `institution_id TEXT` + partial unique index on `plaid_items` (prevents duplicate institution links) |
 
 | Command | Purpose |
 |---------|---------|
@@ -123,7 +131,7 @@ cd backend
 air
 ```
 
-Configuration is in `backend/.air.toml`.
+Configuration is in `backend/.air.toml`. Air runs `make swagger` as a pre-build step before each rebuild using `backend/Makefile` (which has paths relative to the `backend/` directory). The root `Makefile` is for running migrations and swagger generation from the repository root.
 
 ## License
 
