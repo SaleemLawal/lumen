@@ -6,3 +6,16 @@ type PlaidItem struct {
 	AccessToken   string
 	InstitutionID string
 }
+
+type PlaidItemSummary struct {
+	ID            string
+	InstitutionID string
+	Accounts      []AccountSummary
+}
+
+type AccountSummary struct {
+	AccountID string
+	Name      string
+	Type      string
+	Subtype   string
+}

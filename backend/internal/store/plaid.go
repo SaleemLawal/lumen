@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/google/uuid"
 	"github.com/saleemlawal/lumen/internal/domain"
 )
 
@@ -52,5 +53,81 @@ func (r *PlaidRepository) UpdateCursor(ctx context.Context, itemID, cursor strin
 
 	_, err := tx.ExecContext(ctx, query, cursor, itemID)
 	return err
+}
+
+func (r *PlaidRepository) GetAllItems(ctx context.Context) ([]domain.PlaidItemSummary, error) {
+	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT_DURATION)
+	defer cancel()
+
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT
+			pi.id,
+			pi.institution_id,
+			a.account_id,
+			a.name,
+			a.type,
+			a.subtype
+		FROM plaid_items pi
+		LEFT JOIN accounts a ON a.plaid_item_id = pi.id
+		ORDER BY pi.created_at, a.name
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	itemMap := make(map[string]*domain.PlaidItemSummary)
+	var order []string
+
+	for rows.Next() {
+		var itemID, institutionID string
+		var accountID, name, typ, subtype sql.NullString
+
+		if err := rows.Scan(&itemID, &institutionID, &accountID, &name, &typ, &subtype); err != nil {
+			return nil, err
+		}
+
+		if _, seen := itemMap[itemID]; !seen {
+			itemMap[itemID] = &domain.PlaidItemSummary{
+				ID:            itemID,
+				InstitutionID: institutionID,
+				Accounts:      []domain.AccountSummary{},
+			}
+			order = append(order, itemID)
+		}
+
+		if accountID.Valid {
+			itemMap[itemID].Accounts = append(itemMap[itemID].Accounts, domain.AccountSummary{
+				AccountID: accountID.String,
+				Name:      name.String,
+				Type:      typ.String,
+				Subtype:   subtype.String,
+			})
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	items := make([]domain.PlaidItemSummary, 0, len(order))
+	for _, id := range order {
+		items = append(items, *itemMap[id])
+	}
+	return items, nil
+}
+
+func (r *PlaidRepository) GetItemByID(ctx context.Context, id uuid.UUID) (*domain.PlaidItem, error) {
+	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT_DURATION)
+	defer cancel()
+
+	var item domain.PlaidItem
+	err := r.db.QueryRowContext(ctx,
+		`SELECT item_id, access_token, institution_id FROM plaid_items WHERE id = $1`,
+		id,
+	).Scan(&item.ItemID, &item.AccessToken, &item.InstitutionID)
+	if err != nil {
+		return nil, err
+	}
+	return &item, nil
 }
 

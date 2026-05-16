@@ -99,8 +99,13 @@ func (app *application) mount() http.Handler {
 		r.Use(middleware.AllowContentType("application/json", "text/xml"))
 		r.Get("/health", app.healthcheckHandler)
 
-		r.Get("/plaid/link-token", app.createPlaidLinkTokenHandler)
-		r.Post("/plaid/exchange-public-token", app.exchangePublicTokenHandler)
+		r.Route("/plaid", func(r chi.Router) {
+			r.Get("/link-token", app.createPlaidLinkTokenHandler)
+			r.Post("/exchange-public-token", app.exchangePublicTokenHandler)
+			r.Get("/items", app.getPlaidItemsHandler)
+			r.Get("/items/{id}/link-token", app.getUpdateLinkTokenHandler)
+			r.Post("/items/{id}/sync-accounts", app.syncItemAccountsHandler)
+		})
 	})
 
 	return r

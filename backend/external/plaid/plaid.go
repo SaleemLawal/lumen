@@ -63,6 +63,33 @@ func (c *PlaidClient) CreateLinkToken() (string, error) {
 	return response.GetLinkToken(), nil
 }
 
+func (c *PlaidClient) CreateUpdateLinkToken(accessToken string) (string, error) {
+	ctx := context.Background()
+
+	user := plaid.LinkTokenCreateRequestUser{
+		ClientUserId: time.Now().String(),
+	}
+
+	request := plaid.NewLinkTokenCreateRequest(
+		"Lumen",
+		"en",
+		[]plaid.CountryCode{plaid.COUNTRYCODE_US},
+	)
+	request.SetUser(user)
+	request.SetAccessToken(accessToken)
+
+	update := plaid.NewLinkTokenCreateRequestUpdate()
+	update.SetAccountSelectionEnabled(true)
+	request.SetUpdate(*update)
+
+	response, _, err := c.plaidApi.LinkTokenCreate(ctx).LinkTokenCreateRequest(*request).Execute()
+	if err != nil {
+		return "", err
+	}
+
+	return response.GetLinkToken(), nil
+}
+
 func (c *PlaidClient) ExchangePublicToken(publicToken string) (PublicTokenExchangeResult, error) {
 	ctx := context.Background()
 

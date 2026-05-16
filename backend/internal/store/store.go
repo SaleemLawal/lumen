@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/plaid/plaid-go/v42/plaid"
 	"github.com/saleemlawal/lumen/internal/domain"
 )
@@ -18,6 +19,8 @@ type Storage struct {
 		UpsertPlaidItem(ctx context.Context, item *domain.PlaidItem, tx *sql.Tx) error
 		UpdateCursor(ctx context.Context, itemID, cursor string, tx *sql.Tx) error
 		InstitutionLinked(ctx context.Context, institutionID string) (bool, error)
+		GetAllItems(ctx context.Context) ([]domain.PlaidItemSummary, error)
+		GetItemByID(ctx context.Context, id uuid.UUID) (*domain.PlaidItem, error)
 	}
 
 	Accounts interface {
@@ -61,6 +64,13 @@ func (s *Storage) StoreLinkSync(
 			return err
 		}
 		return s.Plaid.UpdateCursor(ctx, item.ItemID, nextCursor, tx)
+	})
+}
+
+
+func (s *Storage) SyncItemAccounts(ctx context.Context, itemID string, accounts []plaid.AccountBase) error {
+	return WithTx(s.db, ctx, func(tx *sql.Tx) error {
+		return s.Accounts.UpsertAccounts(ctx, itemID, accounts, tx)
 	})
 }
 
