@@ -17,6 +17,7 @@ type Storage struct {
 	Plaid interface {
 		UpsertPlaidItem(ctx context.Context, item *domain.PlaidItem, tx *sql.Tx) error
 		UpdateCursor(ctx context.Context, itemID, cursor string, tx *sql.Tx) error
+		InstitutionLinked(ctx context.Context, institutionID string) (bool, error)
 	}
 
 	Accounts interface {

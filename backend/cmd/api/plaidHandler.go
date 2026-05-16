@@ -74,6 +74,7 @@ func (app *application) exchangePublicTokenHandler(w http.ResponseWriter, r *htt
 
 	var accounts []plaid.AccountBase
 	var syncResult *externalplaid.SyncTransactionsResult
+	var institutionID string
 
 	g, _ := errgroup.WithContext(r.Context())
 	g.Go(func() error {
@@ -86,14 +87,29 @@ func (app *application) exchangePublicTokenHandler(w http.ResponseWriter, r *htt
 		syncResult, err = app.plaidClient.SyncTransactions(&response.AccessToken, nil)
 		return err
 	})
+	g.Go(func() error {
+		var err error
+		institutionID, err = app.plaidClient.FetchInstitutionID(response.AccessToken)
+		return err
+	})
 	if err := g.Wait(); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
 
+	linked, err := app.storage.Plaid.InstitutionLinked(r.Context(), institutionID)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+	if linked {
+		app.conflictError(w, r, "this institution is already connected")
+		return
+	}
+
 	// Phase 2: persist everything in a single transaction.
 	err = app.storage.StoreLinkSync(r.Context(),
-		&domain.PlaidItem{AccessToken: encryptedToken, ItemID: response.ItemID},
+		&domain.PlaidItem{AccessToken: encryptedToken, ItemID: response.ItemID, InstitutionID: institutionID},
 		accounts,
 		syncResult.Added,
 		syncResult.Removed,

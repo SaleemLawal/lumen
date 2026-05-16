@@ -2,6 +2,7 @@ package plaid
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	plaid "github.com/plaid/plaid-go/v42/plaid"
@@ -76,6 +77,23 @@ func (c *PlaidClient) ExchangePublicToken(publicToken string) (PublicTokenExchan
 		AccessToken: response.GetAccessToken(),
 		ItemID:      response.GetItemId(),
 	}, nil
+}
+
+func (c *PlaidClient) FetchInstitutionID(accessToken string) (string, error) {
+	ctx := context.Background()
+
+	response, _, err := c.plaidApi.ItemGet(ctx).ItemGetRequest(*plaid.NewItemGetRequest(accessToken)).Execute()
+	if err != nil {
+		return "", err
+	}
+
+	item := response.GetItem()
+	institutionID := item.GetInstitutionId()
+	if institutionID == "" {
+		return "", fmt.Errorf("institution_id not returned by Plaid for this item")
+	}
+
+	return institutionID, nil
 }
 
 func (c *PlaidClient) FetchAccounts(accessToken string) ([]plaid.AccountBase, error) {
