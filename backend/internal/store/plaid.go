@@ -26,3 +26,17 @@ func (r *PlaidRepository) UpsertPlaidItem(ctx context.Context, item *domain.Plai
 	_, err := r.db.ExecContext(ctx, query, item.AccessToken, item.ItemID)
 	return err
 }
+
+func (r *PlaidRepository) UpdateCursor(ctx context.Context, itemID, cursor string) error {
+	query := `
+		UPDATE plaid_items
+		SET transactions_cursor = $1,
+		updated_at = CURRENT_TIMESTAMP
+		WHERE item_id = $2
+	`
+	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT_DURATION)
+	defer cancel()
+
+	_, err := r.db.ExecContext(ctx, query, cursor, itemID)
+	return err
+}

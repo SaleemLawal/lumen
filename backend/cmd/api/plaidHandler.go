@@ -68,26 +68,42 @@ func (app *application) exchangePublicTokenHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
-	item := &domain.PlaidItem{
+	if err := app.storage.Plaid.UpsertPlaidItem(r.Context(), &domain.PlaidItem{
 		AccessToken: encryptedToken,
 		ItemID:      response.ItemID,
-	}
-
-	// upserts Plaid item to database
-	if err := app.storage.Plaid.UpsertPlaidItem(r.Context(), item); err != nil {
+	}); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
 
-	// fetch accounts from Plaid
 	accounts, err := app.plaidClient.FetchAccounts(response.AccessToken)
 	if err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
 
-	// upserts accounts to database
-	if err := app.storage.Accounts.UpsertAccounts(r.Context(), item.ItemID, accounts); err != nil {
+	if err := app.storage.Accounts.UpsertAccounts(r.Context(), response.ItemID, accounts); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	syncTransactionsResult, err := app.plaidClient.SyncTransactions(&response.AccessToken, nil)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.storage.Transactions.UpsertTransactions(r.Context(), response.ItemID, syncTransactionsResult.Added); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.storage.Transactions.DeleteTransactions(r.Context(), response.ItemID, syncTransactionsResult.Removed); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.storage.Plaid.UpdateCursor(r.Context(), response.ItemID, *syncTransactionsResult.NextCursor); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}

@@ -16,6 +16,13 @@ type PublicTokenExchangeResult struct {
 	ItemID      string
 }
 
+type SyncTransactionsResult struct {
+	Added      []plaid.Transaction
+	Modified   []plaid.Transaction
+	Removed    []plaid.RemovedTransaction
+	NextCursor *string
+}
+
 var environments = map[string]plaid.Environment{
 	"sandbox":    plaid.Sandbox,
 	"production": plaid.Production,
@@ -80,4 +87,46 @@ func (c *PlaidClient) FetchAccounts(accessToken string) ([]plaid.AccountBase, er
 	}
 
 	return response.GetAccounts(), nil
+}
+
+func (c *PlaidClient) SyncTransactions(accessToken, cursor *string) (*SyncTransactionsResult, error) {
+	ctx := context.Background()
+
+	var added []plaid.Transaction
+	var modified []plaid.Transaction
+	var removed []plaid.RemovedTransaction
+
+	hasMore := true
+
+	for hasMore {
+		request := plaid.NewTransactionsSyncRequest(*accessToken)
+
+		if cursor != nil {
+			request.SetCursor(*cursor)
+		}
+
+		response, _, err := c.plaidApi.TransactionsSync(ctx).TransactionsSyncRequest(*request).Execute()
+		if err != nil {
+			return nil, err
+		}
+
+		nextCursor := response.GetNextCursor()
+		cursor = &nextCursor
+
+		if *cursor == "" {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		added = append(added, response.GetAdded()...)
+		modified = append(modified, response.GetModified()...)
+		removed = append(removed, response.GetRemoved()...)
+	}
+
+	return &SyncTransactionsResult{
+		Added:      added,
+		Modified:   modified,
+		Removed:    removed,
+		NextCursor: cursor,
+	}, nil
 }

@@ -24,13 +24,10 @@ func (r *AccountRepository) UpsertAccounts(ctx context.Context, itemID string, a
 		return err
 	}
 
-	placeholders := make([]string, len(accounts))
+	placeholders := buildBatchPlaceholders(len(accounts), 8)
 	args := make([]any, 0, len(accounts)*8)
 
-	for i, account := range accounts {
-		base := i * 8
-		placeholders[i] = fmt.Sprintf("($%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d)",
-			base+1, base+2, base+3, base+4, base+5, base+6, base+7, base+8)
+	for _, account := range accounts {
 		args = append(args,
 			plaidItemID,
 			account.AccountId,
