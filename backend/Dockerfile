@@ -10,6 +10,7 @@ RUN go install github.com/air-verse/air@latest && \
 ENV PATH="/go/bin:${PATH}"
 
 COPY go.mod go.sum ./
+COPY Makefile ./Makefile
 RUN go mod download && go mod verify
 
 CMD ["air"]

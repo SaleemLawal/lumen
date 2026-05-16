@@ -32,7 +32,7 @@
         },
         "/api/v1/plaid/exchange-public-token": {
             "post": {
-                "description": "Exchanges a Link public_token server-side.",
+                "description": "Exchanges a Link public_token server-side, stores the encrypted access token and item, then fetches and persists the user's accounts from Plaid.",
                 "consumes": [
                     "application/json"
                 ],
@@ -82,6 +82,117 @@
                 }
             }
         },
+        "/api/v1/plaid/items": {
+            "get": {
+                "description": "Returns all linked Plaid items with their synced accounts.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plaid"
+                ],
+                "summary": "List linked institutions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.PlaidItemSummary"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/plaid/items/{id}/link-token": {
+            "get": {
+                "description": "Returns a Plaid link token configured for account selection update mode for an existing item.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plaid"
+                ],
+                "summary": "Create update-mode link token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Plaid item UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "link token",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/plaid/items/{id}/sync-accounts": {
+            "post": {
+                "description": "Re-fetches accounts from Plaid for an existing item and upserts them (soft sync — adds new, updates existing, never deletes).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plaid"
+                ],
+                "summary": "Sync accounts for an item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Plaid item UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.PlaidExchangePublicTokenResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/plaid/link-token": {
             "get": {
                 "description": "Create a Plaid link token",
@@ -119,6 +230,40 @@
         }
     },
     "definitions": {
+        "domain.AccountSummary": {
+            "type": "object",
+            "properties": {
+                "accountID": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "subtype": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.PlaidItemSummary": {
+            "type": "object",
+            "properties": {
+                "accounts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.AccountSummary"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "institutionID": {
+                    "type": "string"
+                }
+            }
+        },
         "main.ErrorResponse": {
             "type": "object",
             "properties": {

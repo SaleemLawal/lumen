@@ -1,4 +1,26 @@
 definitions:
+  domain.AccountSummary:
+    properties:
+      accountID:
+        type: string
+      name:
+        type: string
+      subtype:
+        type: string
+      type:
+        type: string
+    type: object
+  domain.PlaidItemSummary:
+    properties:
+      accounts:
+        items:
+          $ref: '#/definitions/domain.AccountSummary'
+        type: array
+      id:
+        type: string
+      institutionID:
+        type: string
+    type: object
   main.ErrorResponse:
     properties:
       error:
@@ -41,7 +63,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Exchanges a Link public_token server-side.
+      description: Exchanges a Link public_token server-side, stores the encrypted
+        access token and item, then fetches and persists the user's accounts from
+        Plaid.
       parameters:
       - description: public_token from Link onSuccess
         in: body
@@ -69,6 +93,81 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Exchange Plaid public token
+      tags:
+      - plaid
+  /api/v1/plaid/items:
+    get:
+      description: Returns all linked Plaid items with their synced accounts.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.PlaidItemSummary'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: List linked institutions
+      tags:
+      - plaid
+  /api/v1/plaid/items/{id}/link-token:
+    get:
+      description: Returns a Plaid link token configured for account selection update
+        mode for an existing item.
+      parameters:
+      - description: Plaid item UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: link token
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Create update-mode link token
+      tags:
+      - plaid
+  /api/v1/plaid/items/{id}/sync-accounts:
+    post:
+      description: Re-fetches accounts from Plaid for an existing item and upserts
+        them (soft sync — adds new, updates existing, never deletes).
+      parameters:
+      - description: Plaid item UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.PlaidExchangePublicTokenResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Sync accounts for an item
       tags:
       - plaid
   /api/v1/plaid/link-token:
