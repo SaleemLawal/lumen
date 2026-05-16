@@ -14,11 +14,11 @@ type AccountRepository struct {
 	db *sql.DB
 }
 
-func (r *AccountRepository) UpsertAccounts(ctx context.Context, itemID string, accounts []plaid.AccountBase) error {
+func (r *AccountRepository) UpsertAccounts(ctx context.Context, itemID string, accounts []plaid.AccountBase, tx *sql.Tx) error {
 	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT_DURATION)
 	defer cancel()
 
-	row := r.db.QueryRowContext(ctx, `SELECT id FROM plaid_items WHERE item_id = $1`, itemID)
+	row := tx.QueryRowContext(ctx, `SELECT id FROM plaid_items WHERE item_id = $1`, itemID)
 	var plaidItemID uuid.UUID
 	if err := row.Scan(&plaidItemID); err != nil {
 		return err
@@ -53,6 +53,6 @@ func (r *AccountRepository) UpsertAccounts(ctx context.Context, itemID string, a
 			updated_at = CURRENT_TIMESTAMP
 	`, strings.Join(placeholders, ","))
 
-	_, err := r.db.ExecContext(ctx, query, args...)
+	_, err := tx.ExecContext(ctx, query, args...)
 	return err
 }

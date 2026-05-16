@@ -15,7 +15,7 @@ type TransactionRepository struct {
 	db *sql.DB
 }
 
-func (r *TransactionRepository) UpsertTransactions(ctx context.Context, itemID string, transactions []plaid.Transaction) error {
+func (r *TransactionRepository) UpsertTransactions(ctx context.Context, itemID string, transactions []plaid.Transaction, tx *sql.Tx) error {
 	if len(transactions) == 0 {
 		return nil
 	}
@@ -23,7 +23,7 @@ func (r *TransactionRepository) UpsertTransactions(ctx context.Context, itemID s
 	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT_DURATION)
 	defer cancel()
 
-	row := r.db.QueryRowContext(ctx, `SELECT id FROM plaid_items WHERE item_id = $1`, itemID)
+	row := tx.QueryRowContext(ctx, `SELECT id FROM plaid_items WHERE item_id = $1`, itemID)
 	var plaidItemID uuid.UUID
 	if err := row.Scan(&plaidItemID); err != nil {
 		return err
@@ -58,11 +58,11 @@ func (r *TransactionRepository) UpsertTransactions(ctx context.Context, itemID s
 			updated_at = CURRENT_TIMESTAMP
 	`, strings.Join(placeholders, ","))
 
-	_, err := r.db.ExecContext(ctx, query, args...)
+	_, err := tx.ExecContext(ctx, query, args...)
 	return err
 }
 
-func (r *TransactionRepository) DeleteTransactions(ctx context.Context, removedTransactions []plaid.RemovedTransaction) error {
+func (r *TransactionRepository) DeleteTransactions(ctx context.Context, removedTransactions []plaid.RemovedTransaction, tx *sql.Tx) error {
 	if len(removedTransactions) == 0 {
 		return nil
 	}
@@ -75,7 +75,7 @@ func (r *TransactionRepository) DeleteTransactions(ctx context.Context, removedT
 		ids[i] = tx.TransactionId
 	}
 
-	_, err := r.db.ExecContext(ctx,
+	_, err := tx.ExecContext(ctx,
 		`DELETE FROM transactions WHERE plaid_transaction_id = ANY($1)`,
 		pq.Array(ids),
 	)

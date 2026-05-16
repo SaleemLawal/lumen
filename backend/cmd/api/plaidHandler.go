@@ -3,6 +3,10 @@ package main
 import (
 	"net/http"
 
+	"golang.org/x/sync/errgroup"
+
+	"github.com/plaid/plaid-go/v42/plaid"
+	externalplaid "github.com/saleemlawal/lumen/external/plaid"
 	"github.com/saleemlawal/lumen/internal/domain"
 )
 
@@ -68,54 +72,37 @@ func (app *application) exchangePublicTokenHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
-	if err := app.storage.Plaid.UpsertPlaidItem(r.Context(), &domain.PlaidItem{
-		AccessToken: encryptedToken,
-		ItemID:      response.ItemID,
-	}); err != nil {
+	var accounts []plaid.AccountBase
+	var syncResult *externalplaid.SyncTransactionsResult
+
+	g, _ := errgroup.WithContext(r.Context())
+	g.Go(func() error {
+		var err error
+		accounts, err = app.plaidClient.FetchAccounts(response.AccessToken)
+		return err
+	})
+	g.Go(func() error {
+		var err error
+		syncResult, err = app.plaidClient.SyncTransactions(&response.AccessToken, nil)
+		return err
+	})
+	if err := g.Wait(); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
 
-	accounts, err := app.plaidClient.FetchAccounts(response.AccessToken)
+	// Phase 2: persist everything in a single transaction.
+	err = app.storage.StoreLinkSync(r.Context(),
+		&domain.PlaidItem{AccessToken: encryptedToken, ItemID: response.ItemID},
+		accounts,
+		syncResult.Added,
+		syncResult.Removed,
+		*syncResult.NextCursor,
+	)
 	if err != nil {
-		app.internalServerError(w, r, err)
-		return
-	}
-
-	if err := app.storage.Accounts.UpsertAccounts(r.Context(), response.ItemID, accounts); err != nil {
-		app.internalServerError(w, r, err)
-		return
-	}
-
-	syncTransactionsResult, err := app.plaidClient.SyncTransactions(&response.AccessToken, nil)
-	if err != nil {
-		app.internalServerError(w, r, err)
-		return
-	}
-
-	if err := app.storage.Transactions.UpsertTransactions(r.Context(), response.ItemID, syncTransactionsResult.Added); err != nil {
-		app.internalServerError(w, r, err)
-		return
-	}
-
-	if err := app.storage.Transactions.DeleteTransactions(r.Context(), response.ItemID, syncTransactionsResult.Removed); err != nil {
-		app.internalServerError(w, r, err)
-		return
-	}
-
-	if err := app.storage.Plaid.UpdateCursor(r.Context(), response.ItemID, *syncTransactionsResult.NextCursor); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
 
 	writeJSON(w, http.StatusOK, PlaidExchangePublicTokenResponse{Status: "linked"})
 }
-
-// // handles fetching accounts from Plaid and storing updated accounts to database
-// func (app *application) syncPlaidAccountsHandler(w http.ResponseWriter, r *http.Request) {
-// 	// fectches access token from database and decrypts it
-// 	accessToken, err := app.storage.Plaid.GetAccessToken(r.Context())
-// 	// fetches accounts from Plaid
-// 	// upserts accounts to database
-// 	// returns success code
-// }

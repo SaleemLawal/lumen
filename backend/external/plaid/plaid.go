@@ -112,11 +112,7 @@ func (c *PlaidClient) SyncTransactions(accessToken, cursor *string) (*SyncTransa
 
 		nextCursor := response.GetNextCursor()
 		cursor = &nextCursor
-
-		if *cursor == "" {
-			time.Sleep(1 * time.Second)
-			continue
-		}
+		hasMore = response.GetHasMore()
 
 		added = append(added, response.GetAdded()...)
 		modified = append(modified, response.GetModified()...)

@@ -11,7 +11,7 @@ type PlaidRepository struct {
 	db *sql.DB
 }
 
-func (r *PlaidRepository) UpsertPlaidItem(ctx context.Context, item *domain.PlaidItem) error {
+func (r *PlaidRepository) UpsertPlaidItem(ctx context.Context, item *domain.PlaidItem, tx *sql.Tx) error {
 	query := `
 		INSERT INTO plaid_items (access_token, item_id)
 		VALUES ($1, $2)
@@ -23,20 +23,21 @@ func (r *PlaidRepository) UpsertPlaidItem(ctx context.Context, item *domain.Plai
 	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT_DURATION)
 	defer cancel()
 
-	_, err := r.db.ExecContext(ctx, query, item.AccessToken, item.ItemID)
+	_, err := tx.ExecContext(ctx, query, item.AccessToken, item.ItemID)
 	return err
 }
 
-func (r *PlaidRepository) UpdateCursor(ctx context.Context, itemID, cursor string) error {
+func (r *PlaidRepository) UpdateCursor(ctx context.Context, itemID, cursor string, tx *sql.Tx) error {
 	query := `
 		UPDATE plaid_items
 		SET transactions_cursor = $1,
-		updated_at = CURRENT_TIMESTAMP
+		    updated_at = CURRENT_TIMESTAMP
 		WHERE item_id = $2
 	`
 	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT_DURATION)
 	defer cancel()
 
-	_, err := r.db.ExecContext(ctx, query, cursor, itemID)
+	_, err := tx.ExecContext(ctx, query, cursor, itemID)
 	return err
 }
+
