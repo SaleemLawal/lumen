@@ -31,6 +31,7 @@ type Storage struct {
 	Transactions interface {
 		UpsertTransactions(ctx context.Context, itemID string, transactions []plaid.Transaction, tx *sql.Tx) error
 		DeleteTransactions(ctx context.Context, removedTransactions []plaid.RemovedTransaction, tx *sql.Tx) error
+		GetAll(ctx context.Context, itemID *uuid.UUID, accountID *string) ([]domain.Transaction, error)
 	}
 }
 
@@ -65,6 +66,28 @@ func (s *Storage) StoreLinkSync(
 			return err
 		}
 		return s.Plaid.UpdateCursor(ctx, item.ItemID, nextCursor, tx)
+	})
+}
+
+func (s *Storage) SyncItemTransactions(
+	ctx context.Context,
+	itemID string,
+	added []plaid.Transaction,
+	modified []plaid.Transaction,
+	removed []plaid.RemovedTransaction,
+	nextCursor string,
+) error {
+	return WithTx(s.db, ctx, func(tx *sql.Tx) error {
+		if err := s.Transactions.UpsertTransactions(ctx, itemID, added, tx); err != nil {
+			return err
+		}
+		if err := s.Transactions.UpsertTransactions(ctx, itemID, modified, tx); err != nil {
+			return err
+		}
+		if err := s.Transactions.DeleteTransactions(ctx, removed, tx); err != nil {
+			return err
+		}
+		return s.Plaid.UpdateCursor(ctx, itemID, nextCursor, tx)
 	})
 }
 

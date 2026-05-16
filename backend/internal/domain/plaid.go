@@ -5,6 +5,7 @@ type PlaidItem struct {
 	ItemID        string `json:"item_id" example:"1234567890"`
 	AccessToken   string `json:"access_token" example:"1234567890"`
 	InstitutionID string `json:"institution_id" example:"1234567890"`
+	Cursor        *string `json:"cursor" example:"s1234567890"`
 }
 
 type PlaidItemSummary struct {

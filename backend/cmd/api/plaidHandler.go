@@ -116,7 +116,7 @@ func (app *application) exchangePublicTokenHandler(w http.ResponseWriter, r *htt
 		accounts,
 		syncResult.Added,
 		syncResult.Removed,
-		*syncResult.NextCursor,
+		syncResult.NextCursor,
 	)
 	if err != nil {
 		app.internalServerError(w, r, err)
@@ -233,4 +233,53 @@ func (app *application) syncItemAccountsHandler(w http.ResponseWriter, r *http.R
 	}
 
 	writeJSON(w, http.StatusOK, PlaidExchangePublicTokenResponse{Status: "synced"})
+}
+
+func (app *application) syncItemTransactionsHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		app.badRequestError(w, r, err)
+		return
+	}
+
+	item, err := app.storage.Plaid.GetItemByID(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			writeJSONError(w, http.StatusNotFound, "item not found")
+			return
+		}
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	accessToken, err := app.encryptor.Decrypt(item.AccessToken)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	syncResult, err := app.plaidClient.SyncTransactions(&accessToken, item.Cursor)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.storage.SyncItemTransactions(r.Context(),
+		item.ItemID,
+		syncResult.Added,
+		syncResult.Modified,
+		syncResult.Removed,
+		syncResult.NextCursor,
+	); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK,
+		map[string]any{"status": "synced",
+			"added":       len(syncResult.Added),
+			"modified":    len(syncResult.Modified),
+			"removed":     len(syncResult.Removed),
+			"next_cursor": syncResult.NextCursor,
+		})
 }

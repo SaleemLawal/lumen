@@ -5,10 +5,12 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/plaid/plaid-go/v42/plaid"
+	"github.com/saleemlawal/lumen/internal/domain"
 )
 
 type TransactionRepository struct {
@@ -80,4 +82,50 @@ func (r *TransactionRepository) DeleteTransactions(ctx context.Context, removedT
 		pq.Array(ids),
 	)
 	return err
+}
+
+func (r *TransactionRepository) GetAll(ctx context.Context, itemID *uuid.UUID, accountID *string) ([]domain.Transaction, error) {
+	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT_DURATION)
+	defer cancel()
+
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT id, plaid_item_id, account_id, plaid_transaction_id,
+		       name, amount, date, category, pending, created_at, updated_at
+		FROM transactions
+		WHERE ($1::uuid IS NULL OR plaid_item_id = $1)
+		  AND ($2::text IS NULL OR account_id = $2)
+		ORDER BY date DESC, created_at DESC
+	`, itemID, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	transactions := []domain.Transaction{}
+	for rows.Next() {
+		var t domain.Transaction
+		var date time.Time
+		if err := rows.Scan(
+			&t.ID,
+			&t.PlaidItemID,
+			&t.AccountID,
+			&t.PlaidTransactionID,
+			&t.Name,
+			&t.Amount,
+			&date,
+			pq.Array(&t.Category),
+			&t.Pending,
+			&t.CreatedAt,
+			&t.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		t.Date = date.Format("2006-01-02")
+		transactions = append(transactions, t)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
 }

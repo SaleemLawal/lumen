@@ -122,12 +122,11 @@ func (r *PlaidRepository) GetItemByID(ctx context.Context, id uuid.UUID) (*domai
 
 	var item domain.PlaidItem
 	err := r.db.QueryRowContext(ctx,
-		`SELECT item_id, access_token, institution_id FROM plaid_items WHERE id = $1`,
+		`SELECT item_id, access_token, institution_id, transactions_cursor FROM plaid_items WHERE id = $1`,
 		id,
-	).Scan(&item.ItemID, &item.AccessToken, &item.InstitutionID)
+	).Scan(&item.ItemID, &item.AccessToken, &item.InstitutionID, &item.Cursor)
 	if err != nil {
 		return nil, err
 	}
 	return &item, nil
 }
-

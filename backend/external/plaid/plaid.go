@@ -21,7 +21,7 @@ type SyncTransactionsResult struct {
 	Added      []plaid.Transaction
 	Modified   []plaid.Transaction
 	Removed    []plaid.RemovedTransaction
-	NextCursor *string
+	NextCursor string
 }
 
 var environments = map[string]plaid.Environment{
@@ -140,6 +140,7 @@ func (c *PlaidClient) SyncTransactions(accessToken, cursor *string) (*SyncTransa
 	var added []plaid.Transaction
 	var modified []plaid.Transaction
 	var removed []plaid.RemovedTransaction
+	var nextCursor string
 
 	hasMore := true
 
@@ -155,19 +156,20 @@ func (c *PlaidClient) SyncTransactions(accessToken, cursor *string) (*SyncTransa
 			return nil, err
 		}
 
-		nextCursor := response.GetNextCursor()
-		cursor = &nextCursor
+		nextCursor = response.GetNextCursor()
 		hasMore = response.GetHasMore()
 
 		added = append(added, response.GetAdded()...)
 		modified = append(modified, response.GetModified()...)
 		removed = append(removed, response.GetRemoved()...)
+
+		cursor = &nextCursor
 	}
 
 	return &SyncTransactionsResult{
 		Added:      added,
 		Modified:   modified,
 		Removed:    removed,
-		NextCursor: cursor,
+		NextCursor: nextCursor,
 	}, nil
 }
