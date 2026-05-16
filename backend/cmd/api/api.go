@@ -106,6 +106,10 @@ func (app *application) mount() http.Handler {
 			r.Get("/items/{id}/link-token", app.getUpdateLinkTokenHandler)
 			r.Post("/items/{id}/sync-accounts", app.syncItemAccountsHandler)
 		})
+
+		r.Route("/accounts", func(r chi.Router) {
+			r.Get("/", app.getAccountsHandler)
+		})
 	})
 
 	return r

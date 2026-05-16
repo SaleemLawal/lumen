@@ -1,4 +1,40 @@
 definitions:
+  domain.Account:
+    properties:
+      account_id:
+        example: "1234567890"
+        type: string
+      available_balance:
+        example: 1000
+        type: number
+      created_at:
+        example: "2021-01-01T00:00:00Z"
+        type: string
+      currency_code:
+        example: USD
+        type: string
+      current_balance:
+        example: 1000
+        type: number
+      id:
+        example: "1234567890"
+        type: string
+      name:
+        example: Checking Account
+        type: string
+      plaid_item_id:
+        example: "1234567890"
+        type: string
+      subtype:
+        example: checking
+        type: string
+      type:
+        example: checking
+        type: string
+      updated_at:
+        example: "2021-01-01T00:00:00Z"
+        type: string
+    type: object
   domain.AccountSummary:
     properties:
       account_id:
@@ -48,6 +84,36 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/v1/accounts:
+    get:
+      consumes:
+      - application/json
+      description: Get accounts for a given item ID
+      parameters:
+      - description: Item ID
+        in: query
+        name: item_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Account'
+            type: array
+        "400":
+          description: Invalid item ID
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get accounts
+      tags:
+      - accounts
   /api/v1/health:
     get:
       consumes:

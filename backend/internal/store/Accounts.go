@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/plaid/plaid-go/v42/plaid"
+	"github.com/saleemlawal/lumen/internal/domain"
 )
 
 type AccountRepository struct {
@@ -55,4 +56,48 @@ func (r *AccountRepository) UpsertAccounts(ctx context.Context, itemID string, a
 
 	_, err := tx.ExecContext(ctx, query, args...)
 	return err
+}
+
+func (r *AccountRepository) GetAll(ctx context.Context, itemID *uuid.UUID) ([]domain.Account, error) {
+	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT_DURATION)
+	defer cancel()
+
+	query := `
+		SELECT id, plaid_item_id, account_id, name, type, subtype,
+			current_balance, available_balance, currency_code,
+			created_at, updated_at
+		FROM accounts
+		WHERE ($1::uuid IS NULL OR plaid_item_id = $1)
+		ORDER BY name
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, itemID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	accounts := []domain.Account{}
+	for rows.Next() {
+		var account domain.Account
+		err := rows.Scan(
+			&account.ID,
+			&account.PlaidItemID,
+			&account.AccountID,
+			&account.Name,
+			&account.Type,
+			&account.Subtype,
+			&account.CurrentBalance,
+			&account.AvailableBalance,
+			&account.CurrencyCode,
+			&account.CreatedAt,
+			&account.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		accounts = append(accounts, account)
+	}
+
+	return accounts, nil
 }

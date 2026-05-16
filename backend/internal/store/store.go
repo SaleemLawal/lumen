@@ -25,6 +25,7 @@ type Storage struct {
 
 	Accounts interface {
 		UpsertAccounts(ctx context.Context, itemID string, accounts []plaid.AccountBase, tx *sql.Tx) error
+		GetAll(ctx context.Context, itemID *uuid.UUID) ([]domain.Account, error)
 	}
 
 	Transactions interface {
@@ -66,7 +67,6 @@ func (s *Storage) StoreLinkSync(
 		return s.Plaid.UpdateCursor(ctx, item.ItemID, nextCursor, tx)
 	})
 }
-
 
 func (s *Storage) SyncItemAccounts(ctx context.Context, itemID string, accounts []plaid.AccountBase) error {
 	return WithTx(s.db, ctx, func(tx *sql.Tx) error {

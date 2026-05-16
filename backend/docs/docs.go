@@ -15,6 +15,52 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/accounts": {
+            "get": {
+                "description": "Get accounts for a given item ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Get accounts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Item ID",
+                        "name": "item_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Account"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid item ID",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/health": {
             "get": {
                 "description": "Check the health of the server",
@@ -241,6 +287,55 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.Account": {
+            "type": "object",
+            "properties": {
+                "account_id": {
+                    "type": "string",
+                    "example": "1234567890"
+                },
+                "available_balance": {
+                    "type": "number",
+                    "example": 1000
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2021-01-01T00:00:00Z"
+                },
+                "currency_code": {
+                    "type": "string",
+                    "example": "USD"
+                },
+                "current_balance": {
+                    "type": "number",
+                    "example": 1000
+                },
+                "id": {
+                    "type": "string",
+                    "example": "1234567890"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Checking Account"
+                },
+                "plaid_item_id": {
+                    "type": "string",
+                    "example": "1234567890"
+                },
+                "subtype": {
+                    "type": "string",
+                    "example": "checking"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "checking"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2021-01-01T00:00:00Z"
+                }
+            }
+        },
         "domain.AccountSummary": {
             "type": "object",
             "properties": {
