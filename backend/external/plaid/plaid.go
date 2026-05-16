@@ -48,7 +48,7 @@ func (c *PlaidClient) CreateLinkToken() (string, error) {
 	}
 
 	request := plaid.NewLinkTokenCreateRequest(
-		"Plaid Quickstart",
+		"Lumen",
 		"en",
 		[]plaid.CountryCode{plaid.COUNTRYCODE_US},
 	)
