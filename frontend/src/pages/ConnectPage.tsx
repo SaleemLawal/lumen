@@ -78,7 +78,7 @@ export default function ConnectPage() {
           <h2 className="text-base font-semibold tracking-tight">Connected institutions</h2>
           <ul className="flex flex-col gap-2">
             {linkedItems.map((item) => (
-              <LinkedItemRow key={item.ID} item={item} onSynced={loadItems} />
+              <LinkedItemRow key={item.id} item={item} onSynced={loadItems} />
             ))}
           </ul>
         </section>
@@ -95,18 +95,18 @@ function LinkedItemRow({ item, onSynced }: { item: LinkedItem; onSynced: () => v
   const openUpdateLink = useCallback(async () => {
     setError(null);
     try {
-      const token = await fetchUpdateLinkToken(item.ID);
+      const token = await fetchUpdateLinkToken(item.id);
       setUpdateToken(token);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to open edit flow.");
     }
-  }, [item.ID]);
+  }, [item.id]);
 
   const onSuccess = useCallback(async () => {
     setSyncing(true);
     setError(null);
     try {
-      await syncItemAccounts(item.ID);
+      await syncItemAccounts(item.id);
       onSynced();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sync failed.");
@@ -114,7 +114,7 @@ function LinkedItemRow({ item, onSynced }: { item: LinkedItem; onSynced: () => v
       setSyncing(false);
       setUpdateToken(null);
     }
-  }, [item.ID, onSynced]);
+  }, [item.id, onSynced]);
 
   const { open, ready } = usePlaidLink({
     token: updateToken ?? "",
@@ -130,10 +130,10 @@ function LinkedItemRow({ item, onSynced }: { item: LinkedItem; onSynced: () => v
   return (
     <li className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
       <div className="flex flex-col gap-0.5">
-        <span className="text-sm font-medium">{item.InstitutionID}</span>
+        <span className="text-sm font-medium">{item.institution_id}</span>
         <span className="text-xs text-muted-foreground">
-          {item.Accounts.length} account{item.Accounts.length !== 1 ? "s" : ""} —{" "}
-          {item.Accounts.map((a) => a.Name).join(", ")}
+          {item.accounts.length} account{item.accounts.length !== 1 ? "s" : ""} —{" "}
+          {item.accounts.map((a) => a.name).join(", ")}
         </span>
         {error && <span className="text-xs text-destructive">{error}</span>}
       </div>

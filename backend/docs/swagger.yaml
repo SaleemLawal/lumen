@@ -1,13 +1,17 @@
 definitions:
   domain.AccountSummary:
     properties:
-      accountID:
+      account_id:
+        example: "1234567890"
         type: string
       name:
+        example: Checking Account
         type: string
       subtype:
+        example: checking
         type: string
       type:
+        example: checking
         type: string
     type: object
   domain.PlaidItemSummary:
@@ -17,8 +21,10 @@ definitions:
           $ref: '#/definitions/domain.AccountSummary'
         type: array
       id:
+        example: "1234567890"
         type: string
-      institutionID:
+      institution_id:
+        example: "1234567890"
         type: string
     type: object
   main.ErrorResponse:

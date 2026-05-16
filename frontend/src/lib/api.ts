@@ -1,16 +1,16 @@
 const BASE = "/api/v1";
 
 export interface AccountSummary {
-  AccountID: string;
-  Name: string;
-  Type: string;
-  Subtype: string;
+  account_id: string;
+  name: string;
+  type: string;
+  subtype: string;
 }
 
 export interface LinkedItem {
-  ID: string;
-  InstitutionID: string;
-  Accounts: AccountSummary[];
+  id: string;
+  institution_id: string;
+  accounts: AccountSummary[];
 }
 
 export async function fetchLinkToken(): Promise<string> {

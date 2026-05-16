@@ -244,17 +244,21 @@ const docTemplate = `{
         "domain.AccountSummary": {
             "type": "object",
             "properties": {
-                "accountID": {
-                    "type": "string"
+                "account_id": {
+                    "type": "string",
+                    "example": "1234567890"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Checking Account"
                 },
                 "subtype": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "checking"
                 },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "checking"
                 }
             }
         },
@@ -268,10 +272,12 @@ const docTemplate = `{
                     }
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1234567890"
                 },
-                "institutionID": {
-                    "type": "string"
+                "institution_id": {
+                    "type": "string",
+                    "example": "1234567890"
                 }
             }
         },
