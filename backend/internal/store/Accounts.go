@@ -43,7 +43,7 @@ func (r *AccountRepository) UpsertAccounts(ctx context.Context, itemID string, a
 	query := fmt.Sprintf(`
 		INSERT INTO accounts (plaid_item_id, account_id, name, type, subtype, current_balance, available_balance, currency_code)
 		VALUES %s
-		ON CONFLICT (account_id, plaid_item_id) DO UPDATE SET
+		ON CONFLICT (account_id) DO UPDATE SET
 			name = EXCLUDED.name,
 			type = EXCLUDED.type,
 			subtype = EXCLUDED.subtype,
