@@ -108,6 +108,10 @@ func (app *application) mount() http.Handler {
 			r.Post("/items/{id}/sync-transactions", app.syncItemTransactionsHandler)
 		})
 
+		r.Route("/transactions", func(r chi.Router) {
+			r.Get("/", app.getTransactionsHandler)
+		})
+
 		r.Route("/accounts", func(r chi.Router) {
 			r.Get("/", app.getAccountsHandler)
 		})
